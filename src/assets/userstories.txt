@@ -1,0 +1,7 @@
+User Stories:
+
+1. User can create a profile and can add personal information about themselves
+2. User can add runs to their calendar and can input more specific statistics, after submitted, users can post their achievements
+3. Events can be posted by any user and any user (if they fit the requirements) can join an event, events will be displayed on map
+4. Users can post pictures of shoes or running items on Market, and if a user would want that item, they can click on the item they want and will be given the owner's profile to message them 
+5. Users can message each other through other user profiles
