@@ -1,28 +1,34 @@
 {
-  "name": "my-react-app",
+  "name": "stridex",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "server": "tsx watch server.ts",
     "build": "tsc -b && vite build",
-    "lint": "oxlint",
-    "preview": "vite preview"
+    "start": "tsx server.ts"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "leaflet": "^1.9.4",
-    "react": "^19.0.0-rc.1",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "pg": "^8.23.1",
+    "react": "^19.2.8",
     "react-bootstrap-icons": "^1.11.6",
     "react-calendar": "^6.0.1",
     "react-dom": "^19.0.0-rc.1",
     "react-leaflet": "^5.0.0-rc.2",
     "react-router-dom": "^7.18.4",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.22",
+    "@types/express": "^5.0.6",
     "@types/node": "^24.13.3",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
