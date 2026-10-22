@@ -1,8 +1,8 @@
 
 function Connections(){
-  <h1>
-    return <p>Connections</p>
-  </h1>
+  return(
+        <p>Connections</p>
+    )
 }
 
 export default Connections;
