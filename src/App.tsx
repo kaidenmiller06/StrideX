@@ -4,11 +4,11 @@ import Events from './components/sections/Events';
 
 function App(){
   return (
-    <h1>
+    <BrowserRouter>
       <Routes>
-        <Route path="/groups" element={<Events/>} />
+        <Route path="/" element={<Events/>} />
       </Routes>
-    </h1>
+    </BrowserRouter>
   );
 }
 
