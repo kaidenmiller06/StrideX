@@ -1,1 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --color-stridex-green: #32cd32;
+  --color-stridex-darkgreen: #1f8f1f;
+  --color-stridex-black: #18181b;
+  --color-stridex-grey: #2d2d2d;
+  --color-stridex-lightgrey: #969696;
+
+  --font-orbitron: "Orbitron", sans-serif;
+}
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-orbitron);
+  }
+}

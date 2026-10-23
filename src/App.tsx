@@ -4,17 +4,18 @@ import Connections from './components/sections/Connections';
 import Home from './components/sections/Home';
 import Profile from './components/sections/Profile';
 import Store from './components/sections/Store';
-
+import Header from './components/sections/Header';
 
 function App(){
   return (
     <BrowserRouter>
+      <Header />
       <Routes>
-        <Route path="/Events" element={<Events/>} />
-        <Route path="/Store" element={<Store/>} />
-        <Route path="/Connections" element={<Connections/>} />
-        <Route path="/Home" element={<Home/>} />
-        <Route path="/Profile" element={<Profile/>} />
+        <Route path="/" element={<Home/>} />
+        <Route path="/events" element={<Events/>} />
+        <Route path="/store" element={<Store/>} />
+        <Route path="/connections" element={<Connections/>} />
+        <Route path="/profile" element={<Profile/>} />
       </Routes>
     </BrowserRouter>
   );

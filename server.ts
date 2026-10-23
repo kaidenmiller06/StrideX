@@ -6,11 +6,14 @@ import pg from "pg";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const u = new URL(process.env.DATABASE_URL!);
+console.log("DB host:", u.host, "user:", u.username, "pw length:", u.password.length);
+
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL?.includes("proxy.rlwy.net")
-    ? { rejectUnauthorized: false }
-    : undefined,
+  // ssl: process.env.DATABASE_URL?.includes("proxy.rlwy.net")
+  //   ? { rejectUnauthorized: false }
+  //   : undefined,
 });
 
 const app = express();
@@ -33,4 +36,6 @@ app.use((_req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
-app.listen(3000, () => console.log("Server running on port 3000"));
+// Process port from railway environment variable or default to 3000
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
