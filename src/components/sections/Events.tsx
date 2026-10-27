@@ -5,15 +5,26 @@ import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 
 
+type EventItem = {
+  id: number
+  title: string
+  date: string // 'YYYY-MM-DD'
+  lat: number
+  lng: number
+}
 
+const events: EventItem[] = [
+  { id: 1, title: 'Race', date: '2026-10-22', lat: 40.1510, lng: -76.5916 },
+]
 
 function Events(){
   const [date, setDate] = useState<Date>(new Date())
-
+  const selected = date.toLocaleDateString('en-CA')
+  const todaysEvents = events.filter((e) => e.date === selected)
 
   return(
     <>
-    <div style={{ position: 'fixed', top: 0, left: 115, padding: '1rem', zIndex: 1 }}>
+    <div style={{ position: 'fixed', top: -18, left: 115, padding: '1rem', zIndex: 1 }}>
       <Calendar value={date} onChange={(d) => setDate(d as Date)} />
     </div>
 
@@ -25,10 +36,33 @@ function Events(){
       />
       <Marker position={[40.151042, -76.591637]}>
         <Popup>
-          A pretty CSS3 popup. <br /> Easily customizable.
+          StrideX
         </Popup>
       </Marker>
     </MapContainer>
+     <aside
+        style={{
+          position: 'fixed',
+          top: 0,
+          bottom: 0,
+          left: '50vw',
+          right: 0,
+          padding: '1rem',
+          overflowY: 'auto',
+          zIndex: 1,
+        }}
+      >
+        <h2>Events on {date.toLocaleDateString()}</h2>
+        {todaysEvents.length === 0 ? (
+          <p>No events on this day.</p>
+        ) : (
+          <ul>
+            {todaysEvents.map((e) => (
+              <li key={e.id}>{e.title}</li>
+            ))}
+          </ul>
+        )}
+      </aside>
     </>
     )
 }
