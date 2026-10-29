@@ -11,10 +11,13 @@ type EventItem = {
   date: string // 'YYYY-MM-DD'
   lat: number
   lng: number
+  desc: string
+  tags: Array<string>
+  creatorId: string
 }
 
 const events: EventItem[] = [
-  { id: 1, title: 'Race', date: '2026-10-22', lat: 40.1510, lng: -76.5916 },
+  {id: 1, title: 'Elizabethtown 5k', date: '2026-10-29', lat: 40.1510, lng: -76.5916, desc: 'Casual Race', tags: ['XC', 'Casual'], creatorId: 't'},
 ]
 
 function Events(){
@@ -23,8 +26,7 @@ function Events(){
   const todaysEvents = events.filter((e) => e.date === selected)
 
   return(
-    <div className='grid grid-cols-1 md:h-screen md:grid-cols-2 md:grid-rows-[minmax(0,1fr)]'>
-      
+    <div className="grid grid-cols-1 md:h-screen md:grid-cols-2 md:grid-rows-[minmax(0,1fr)]">
       <div className='flex min-h-0 flex-col'>
         <div className='shrink-0 p-4'>
           <Calendar
@@ -40,9 +42,11 @@ function Events(){
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Marker position={[40.151042, -76.591637]}>
-          <Popup>Race Location</Popup>
-        </Marker>
+        {todaysEvents.map((event) => (
+          <Marker position={[40.151042, -76.591637]}>
+            <Popup>{event.title}</Popup>
+          </Marker>
+        ))}
       </MapContainer>
     </div>
 
@@ -52,11 +56,11 @@ function Events(){
           Events on {date.toLocaleDateString()}
         </h2>
         {todaysEvents.length === 0 ? (
-          <p className='text-black-500'>Conference 8k</p>
+          <p className='text-black-500'>No Events</p>
         ) : (
           <ul className='list-disc pl-5'>
-            {todaysEvents.map((e) => (
-              <li key={e.id}>{e.title}</li>
+            {todaysEvents.map((event) => (
+              <li key={event.id}>{event.title}</li>
             ))}
           </ul>
         )}
@@ -64,6 +68,5 @@ function Events(){
     </div>
     )
 }
-
 
 export default Events;
