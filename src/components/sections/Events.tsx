@@ -23,47 +23,45 @@ function Events(){
   const todaysEvents = events.filter((e) => e.date === selected)
 
   return(
-    <>
-    <div style={{ position: 'fixed', top: 30, left: 100, padding: '1rem', zIndex: 1 }}>
-      <Calendar value={date} onChange={(d) => setDate(d as Date)} />
+    <div className='grid grid-cols-1 md:h-screen md:grid-cols-2 md:grid-rows-[minmax(0,1fr)]'>
+      
+      <div className='flex min-h-0 flex-col'>
+        <div className='shrink-0 p-4'>
+          <Calendar
+            value={date}
+            onChange={(d) => setDate(d as Date)}
+            className='!w-full !max-w-full' 
+          />
     </div>
 
+    <div className="h-[50vh] md:h-auto md:min-h-0 md:flex-1"></div>
+      <MapContainer center={[40.151042, -76.591637]} zoom={13} scrollWheelZoom className='h-full w-full'>
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker position={[40.151042, -76.591637]}>
+          <Popup>Race Location</Popup>
+        </Marker>
+      </MapContainer>
+    </div>
 
-    <MapContainer center={[40.151042, -76.591637]} zoom={13} scrollWheelZoom={true} style={{position: 'fixed', bottom: 0, left: 0, height: '50vh', width: '50vw', zIndex: 0}}>
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <Marker position={[40.151042, -76.591637]}>
-        <Popup>
-          StrideX
-        </Popup>
-      </Marker>
-    </MapContainer>
-     <aside
-        style={{
-          position: 'fixed',
-          top: 0,
-          bottom: 0,
-          left: '50vw',
-          right: 0,
-          padding: '1rem',
-          overflowY: 'auto',
-          zIndex: 1,
-        }}
-      >
-        <h2>Events on {date.toLocaleDateString()}</h2>
+  
+    <aside className='p-4 md:overflow-y-auto'>
+        <h2 className='mb-2 text-xl font-semibold'>
+          Events on {date.toLocaleDateString()}
+        </h2>
         {todaysEvents.length === 0 ? (
-          <p>No events on this day.</p>
+          <p className='text-black-500'>Conference 8k</p>
         ) : (
-          <ul>
+          <ul className='list-disc pl-5'>
             {todaysEvents.map((e) => (
               <li key={e.id}>{e.title}</li>
             ))}
           </ul>
         )}
       </aside>
-    </>
+    </div>
     )
 }
 
