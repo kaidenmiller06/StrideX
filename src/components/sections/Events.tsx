@@ -24,12 +24,12 @@ function Events(){
 
   return(
     <>
-    <div style={{ position: 'fixed', top: -18, left: 115, padding: '1rem', zIndex: 1 }}>
+    <div style={{ position: 'fixed', top: 30, left: 100, padding: '1rem', zIndex: 1 }}>
       <Calendar value={date} onChange={(d) => setDate(d as Date)} />
     </div>
 
 
-    <MapContainer center={[40.151042, -76.591637]} zoom={13} scrollWheelZoom={false} style={{position: 'fixed', bottom: 0, left: 0, height: '50vh', width: '50vw', zIndex: 0}}>
+    <MapContainer center={[40.151042, -76.591637]} zoom={13} scrollWheelZoom={true} style={{position: 'fixed', bottom: 0, left: 0, height: '50vh', width: '50vw', zIndex: 0}}>
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
