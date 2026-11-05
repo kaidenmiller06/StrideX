@@ -3,6 +3,8 @@ import 'leaflet/dist/leaflet.css'
 import { useState } from 'react'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
+import L from 'leaflet'
+
 
 
 type EventItem = {
@@ -17,7 +19,7 @@ type EventItem = {
 }
 
 const events: EventItem[] = [
-  {id: 1, title: 'Elizabethtown 5k', date: '2026-10-29', lat: 40.1510, lng: -76.5916, desc: 'Casual Race', tags: ['XC', 'Casual'], creatorId: 't'},
+  {id: 1, title: 'Elizabethtown 5k', date: '2026-11-05', lat: 40.1510, lng: -76.5916, desc: 'Casual Race', tags: ['XC', 'Casual'], creatorId: 't'},
 ]
 
 function Events(){
@@ -43,7 +45,7 @@ function Events(){
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {todaysEvents.map((event) => (
-          <Marker position={[40.151042, -76.591637]}>
+          <Marker key={event.id} position={[event.lat, event.lng]}>
             <Popup>{event.title}</Popup>
           </Marker>
         ))}
