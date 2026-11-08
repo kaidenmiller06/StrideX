@@ -7,12 +7,30 @@
   --color-stridex-black: #18181b;
   --color-stridex-grey: #2d2d2d;
   --color-stridex-lightgrey: #969696;
+  --color-stridex-hover: #27272c;
+  --color-stridex-active: #0f0f11;
 
   --font-orbitron: "Orbitron", sans-serif;
 }
 
+/* Scrollbar and header styling to match design theme */
 @layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-stridex-lightgrey) transparent;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-orbitron);
+  }
+}
+
+/* Hidden scrollbar utility */
+@utility scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
