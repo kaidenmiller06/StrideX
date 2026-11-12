@@ -1,53 +1,53 @@
 import { useState } from 'react';
 
-export default function AddressToCoords({address} : {address: String}){
-
-  interface coords{
+export interface Coords{
     lat: number;
     lng: number;
     displayName: String;
-  } 
+} 
 
-  const [coordinates, setCoordinates] = useState<coords | null>(null);
+interface Props{
+  address: string;
+  onResult?: (coords: Coords) => void;
+}
+
+export default function AddressToCoords({address, onResult} : Props){
+  const [coordinates, setCoordinates] = useState<Coords | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<String | null>(null);
 
-  const handleGeocode = async(e: { preventDefault: () => void; }) => {
-    e.preventDefault()
-    if(!address) return;
+  const handleGeocode = async() => {
+    if(!address.trim()) return;
 
     setLoading(true);
     setError(null);
     setCoordinates(null);
 
     try {
-      const url = `https://openstreetmap.org{encodeURIComponent(address)}&limit=1`;
+      const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`;
 
       const response = await fetch(url, {
-        headers: {
-          'Accept-Language': 'en'
-        }
+        headers: {'Accept-Language': 'en'}
       });
+      if(!response.ok) throw new Error('Error');
       
       const data = await response.json();
-      
-        if (data && data.length > 0) {
-        setCoordinates({
-          lat: data[0].lat,
-          lng: data[0].lon,
-          displayName: data[0].display_name
-          
-        });
-        } else {
-          setError('No locations found for that address.');
-        }
-        } catch (err) {
-          setError('Failed to fetch coordinates. Please try again.');
-        } finally {
-          setLoading(false);
-          return coordinates;
-        }
-      };
 
-  
-  }
+      if (data.length > 0) {
+        const result: Coords={
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon),
+          displayName: data[0].display_name  
+        };
+        setCoordinates(result);
+        onResult?.(result);
+      } else {
+        setError('No locations found for that address.');
+      }
+      } catch (err) {
+        setError('Failed to fetch coordinates. Please try again.');
+      } finally {
+        setLoading(false);
+      } 
+    };
+}

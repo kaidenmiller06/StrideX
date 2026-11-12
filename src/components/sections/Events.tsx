@@ -3,7 +3,7 @@ import 'leaflet/dist/leaflet.css'
 import {useState} from 'react'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
-import AddressToCoords from '../../scripts/AddressToCoords'
+import AddressToCoords from '../../scripts/AddressToCoords'  // use later for translating address to coordinates so users don't have to input them
 import Header from './Header'
 
 
@@ -19,14 +19,39 @@ type EventItem = {
 }
 
 const events: EventItem[] = [
-  {id: 1, title: 'Elizabethtown 5k', date: '2026-11-05', lat: 40.1510, lng: -76.5916, desc: 'Casual Race', tags: ['XC', 'Casual'], creatorId: 't'},
+  {id: 1, title: 'Elizabethtown 5k', date: '2026-11-10', lat: 40.1510, lng: -76.5916, desc: 'Casual Race', tags: ['XC', 'Casual'], creatorId: 't'},
 ]
 
 
 function Events(){
   const [date, setDate] = useState<Date>(new Date())
+  const [activeStart, setActiveStart] = useState<Date>(new Date()) 
   const selected = date.toLocaleDateString('en-CA')
   const todaysEvents = events.filter((e) => e.date === selected)
+  const monthLabel = activeStart.toLocaleDateString('en-US', {month: 'long', year: 'numeric'})
+  const shiftMonth = (n: number) => setActiveStart((prev) => new Date(prev.getFullYear(), prev.getMonth() + n, 1))
+
+  const createEvent = async () => {
+    try {
+      const coords = await AddressToCoords('1 Alpha Drive') // later: use the address from a form
+      if (!coords) return
+      setEventList((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          title: 'New Event',
+          date: selected,
+          lat: coords.lat,
+          lng: coords.lng,
+          desc: '',
+          tags: [],
+          creatorId: 't',
+        },
+      ])
+    } catch (err) {
+      console.error('Failed to create event', err)
+    }
+  }
 
 
   return(
@@ -41,14 +66,17 @@ function Events(){
                 <Calendar
                   value={date}
                   onChange={(d) => setDate(d as Date)}
+                  activeStartDate={activeStart}
+                  onActiveStartDateChange={({activeStartDate}) => activeStartDate && setActiveStart(activeStartDate)}
+                  showNavigation={false}
                   className='!w-full !max-w-full'
                 />
               </div>
 
-              <div className='h-[50vh] md:h-[60vh]'>
+              <div className='h-[30vh] md:h-[50vh]'>
                 <MapContainer
                   center={[40.151042, -76.591637]}
-                  zoom={13}
+                  zoom={14}
                   scrollWheelZoom
                   className='h-full w-full'
                 >
@@ -71,16 +99,29 @@ function Events(){
 
   
             {/* Event's List */}
-            <section className='p-4 md:overflow-y-auto'>
-              <h2 className='mb-2 text-xl font-semibold'>
+            <section className='p-4 text-white md:overflow-y-auto'>
+              <div className='mb-4 flex items-center justify-between'>
+                <button onClick={() => shiftMonth(-1)} aria-label='Previous month' className='rounded px-3 py-1 text-2xl hover:bg-white/10'>
+                  ‹
+                </button>
+                <h2 className='text-2xl font-bold'>{monthLabel}</h2>
+                <button onClick={() => shiftMonth(1)} aria-label='Next month' className='rounded px-3 py-1 text-2xl hover:bg-white/10'>
+                  ›
+                </button>
+                <button onClick={createEvent} className="rounded bg-white/10 px-3 py-1 hover:bg-white/20">
+                  Create Event
+                </button>
+              </div>
+
+              <h3 className='mb-2 text-xl font-semibold'>
                 Events on {date.toLocaleDateString()}
-              </h2>
+              </h3>
               {todaysEvents.length === 0 ? (
-                <p className='text-black-500'>No Events</p>
+                <p>No Events Today</p>
               ) : (
                 <ul className='list-disc pl-5'>
                   {todaysEvents.map((event) => (
-                  <li key={event.id}>{event.title}</li>
+                    <li key={event.id}>{event.title}</li>
                   ))}
                 </ul>
               )}
