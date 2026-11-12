@@ -23,6 +23,5 @@ export type ProfileFormProps = {
   onSave: (data: ProfileFormData) => void;
   onCancel?: () => void;
   onDelete?: () => void;
-  error?: string | null;
   saving?: boolean;
 };

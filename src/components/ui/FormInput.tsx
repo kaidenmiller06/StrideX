@@ -41,7 +41,7 @@ function FormInput({ id, label, type, value, onChange, placeholder, required = f
       </label>
 
       <input id={id} type={type} min={min} max={max} minLength={minLength} maxLength={maxLength}
-        className="w-full rounded-lg bg-stridex-grey mb-2 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-stridex-green"
+        className="w-full rounded-lg bg-stridex-grey mb-2 px-3 py-2 text-white hover:bg-stridex-black-hover focus:outline-none focus:ring-2 focus:ring-stridex-green-hover"
         placeholder={placeholder} value={value}
         onChange={onChange}
         pattern={pattern}

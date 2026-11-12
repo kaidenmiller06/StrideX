@@ -12,8 +12,8 @@ function NavItem({ to, end, children }: { to: string; end: boolean; children: Re
       to={to}
       end={end}
       className={({ isActive }) =>
-        `font-orbitron font-bold hover:underline active:text-stridex-darkgreen ${
-          isActive ? 'text-stridex-green' : 'text-white'
+        `font-orbitron font-bold hover:underline active:text-stridex-green ${
+          isActive ? 'text-stridex-green-hover' : 'text-white'
         }`
       }
     >

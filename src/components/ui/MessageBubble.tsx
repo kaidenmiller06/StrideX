@@ -33,7 +33,7 @@ function MessageBubble({
       }`;
 
   const colors = isOwn
-    ? 'bg-stridex-darkgreen'
+    ? 'bg-stridex-green'
     : 'bg-stridex-grey';
 
   return (

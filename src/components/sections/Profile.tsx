@@ -1,42 +1,59 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Person, SendFill } from 'react-bootstrap-icons';
+import toast from 'react-hot-toast';
 
 import Header from './Header';
 import ProfileForm from '../ui/ProfileForm';
 import type { ProfileData, ProfileFormData } from '../../types/profile';
 import { authClient } from '../../lib/authClient';
 
+/**
+ * Profile component that displays a user's profile information and allows editing if it's the current user's profile. 
+ */
 function Profile() {
   const { username } = useParams<{ username?: string }>();
+  const navigate = useNavigate();
   const isOwn = !username;
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
+  // Fetch profile data when the component mounts or when the username changes.
   useEffect(() => {
     let cancelled = false;
     setLoaded(false);
-    setError(null);
 
+    // Fetch a user's profile data from the server. If no username is provided, fetch the current user's profile.
     fetch(isOwn ? '/api/profile/me' : `/api/profile/${encodeURIComponent(username!)}`)
       .then(async (r) => {
         if (r.status === 404) return { profile: null, notFound: true };
         if (!r.ok) throw new Error(`Profile request failed: ${r.status}`);
         return r.json();
       })
-      .then(({ profile }) => {
+      .then(({ profile, notFound }) => {
         if (cancelled) return;
+
+        // Redirect to home if other user's profile is not found
+        if (!isOwn && (notFound || !profile)) {
+          toast.error('User not found', { id: 'profile-error' });
+          navigate('/', { replace: true });
+          return;
+        }
+
         setProfile(profile ?? null);
         setEditing(isOwn && !profile);
       })
       .catch((err) => {
         if (cancelled) return;
         console.error(err);
-        setError(isOwn ? "Could not load your profile" : "Could not load this user's profile");
+        toast.error(
+          isOwn ? "Could not load your profile" : "Could not load this user's profile",
+          { id: 'profile-error' }
+        );
+        navigate('/', { replace: true });
       })
       .finally(() => { if (!cancelled) setLoaded(true); });
     
@@ -50,7 +67,6 @@ function Profile() {
    */
   const handleSave = async (values: ProfileFormData) => {
     setSaving(true);
-    setError(null);
     try {
       const res = await fetch("/api/profile/me", {
         method: "PUT",
@@ -58,31 +74,45 @@ function Profile() {
         body: JSON.stringify(values),
       });
 
+      // If the user is not authenticated, redirect to the auth page.
       if (res.status === 401) {
-        window.location.href = "/auth";
+        toast.error(
+          "You must be signed in to save your profile",
+          { id: 'profile-error' }
+        );
+        navigate("/auth");
         return;
       }
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setError(body?.error ?? "Could not save profile");
+        toast.error(
+          body?.error ?? "Could not save profile",
+          { id: 'profile-error' }
+        );
         return;
       }
 
       const data = await res.json();
       setProfile(data.profile);
       setEditing(false);
+      toast.success("Profile saved", { id: 'profile-success' });
     } catch {
-      setError("Network error, please try again");
+      toast.error(
+        "Network error, please try again",
+        { id: 'profile-error' }
+      );
     } finally {
       setSaving(false);
     }
   };
 
+  /**
+   * Delete the current user's account and profile. Signs the user out and redirects to the home page.
+   */
   const handleDelete = async () => {
     if (!confirm("Delete your account? Your profile and login will be permanently removed. This cannot be undone.")) return;
     setSaving(true);
-    setError(null);
     try {
       const res = await fetch("/api/me", { method: "DELETE", credentials: "include" });
       if (!res.ok) throw new Error(`Delete request failed: ${res.status}`);
@@ -93,29 +123,38 @@ function Profile() {
         console.error("Failed to sign out after account deletion");
       }
 
-      window.location.href = "/";
+      toast.success("Account deleted", { id: 'profile-success' });
+      navigate("/", { replace: true });
     } catch (err) {
       console.error(err);
-      setError("Failed to delete account. Please try again.");
+      toast.error(
+        "Failed to delete account. Please try again.",
+        { id: 'profile-error' }
+      );
       setSaving(false);
     }
   };
 
-  if (!loaded) return null;
-  if (error && !profile && !editing) return <p className="p-4">{error}</p>;
-  if (!isOwn && !profile) return <p className="p-4">User not found</p>;
-
+  // Loading state: show only the header while the profile data is being fetched or if the profile is not found.
+  if (!loaded || (!isOwn && !profile)) {
+    return (
+      <div className="flex min-h-dvh flex-col bg-stridex-grey">
+        <Header />
+      </div>
+    );
+  }
+  
   return (
     <>
       <div className="flex min-h-dvh flex-col bg-stridex-grey">
         <Header />
+        {/* Show the profile form if editing, otherwise show the profile details */}
         {editing ? (
           <ProfileForm
             profile={profile}
             onSave={handleSave}
-            onCancel={profile ? () => { setEditing(false); setError(null); } : undefined}
+            onCancel={profile ? () => { setEditing(false); } : undefined}
             onDelete={profile ? handleDelete : undefined}
-            error={error}
             saving={saving}
           />
         ) : (
@@ -140,18 +179,18 @@ function Profile() {
                       <div className="flex flex-row gap-2">
                         {isOwn ? (
                           <button
-                            className="px-4 py-2 text-white rounded-full border border-white hover:bg-stridex-lightgrey focus:border-stridex-darkgreen focus:ring-2 focus:ring-stridex-green focus:ring-opacity-50 active:bg-white transition-colors duration-300"
+                            className="px-4 py-2 text-white rounded-full border border-white hover:bg-stridex-lightgrey focus:border-stridex-green focus:ring-2 focus:ring-stridex-green-hover focus:ring-opacity-50 active:bg-white transition-colors duration-300"
                             onClick={() => setEditing(true)}
                           >
                             Edit Profile
                           </button>
                         ) : (
                           <>
-                            <button className="px-4 py-2 text-white rounded-full border border-white hover:bg-stridex-lightgrey focus:border-stridex-darkgreen focus:ring-2 focus:ring-stridex-green focus:ring-opacity-50 active:bg-white transition-colors duration-300">
+                            <button className="px-4 py-2 text-white rounded-full border border-white hover:bg-stridex-lightgrey focus:border-stridex-green focus:ring-2 focus:ring-stridex-green-hover focus:ring-opacity-50 active:bg-white transition-colors duration-300">
                               Connect
                             </button>
 
-                            <button className="aspect-square inline-flex items-center justify-center p-2 text-white rounded-full border border-white hover:bg-stridex-lightgrey focus:border-stridex-darkgreen focus:ring-2 focus:ring-stridex-green focus:ring-opacity-50 active:bg-white transition-colors duration-300">
+                            <button className="aspect-square inline-flex items-center justify-center p-2 text-white rounded-full border border-white hover:bg-stridex-lightgrey focus:border-stridex-green focus:ring-2 focus:ring-stridex-green-hover focus:ring-opacity-50 active:bg-white transition-colors duration-300">
                               <SendFill size={20} />
                             </button>
                           </>

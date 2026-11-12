@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 import Header from "./Header";
 import FormInput from "../ui/FormInput";
 import { authClient } from "../../lib/authClient";
+import { handleInvalid } from "../../lib/formValidation";
 
 function Auth() {
   const { data: session, isPending } = authClient.useSession();
@@ -12,7 +14,6 @@ function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   /**
@@ -20,12 +21,11 @@ function Auth() {
    */
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    setError(null);
     setLoading(true);
 
     // If registering, ensure the password and confirm password fields match
     if (mode === 'register' && password !== confirmPassword) {
-      setError("Passwords do not match");
+      toast.error("Passwords do not match", { id: 'auth-error' });
       setLoading(false);
       return;
     }
@@ -36,9 +36,11 @@ function Auth() {
           ? await authClient.signUp.email({ email, password, name })
           : await authClient.signIn.email({ email, password });
 
-      if (error) setError(error.message ?? 'Something went wrong');
+      if (error) {
+        toast.error(error.message ?? 'Something went wrong', { id: 'auth-error' });
+      }
     } catch {
-      setError("Network error, please try again");
+      toast.error("Network error, please try again", { id: 'auth-error' });
     } finally {
       setLoading(false);
     }
@@ -48,7 +50,6 @@ function Auth() {
    * Switch between login and register modes, resetting the form fields and error state.
    */
   const handleModeSwitch = () => {
-    setError(null);
     setName('');
     setEmail('');
     setPassword('');
@@ -56,15 +57,29 @@ function Auth() {
     setMode(mode === 'login' ? 'register' : 'login');
   }
 
-  if (isPending) return null;
-  if (session) return <Navigate to="/profile" replace />;
+  // Loading state: show only the header while checking authentication status.
+  if (isPending) {
+    return (
+      <div className="flex min-h-dvh flex-col bg-stridex-grey">
+        <Header />
+      </div>
+    );
+  };
+
+  // If the user is already authenticated, show a success toast and redirect to the profile page.
+  if (session) {
+    toast.success("You are now signed in", { id: 'auth-success' });
+    return (
+      <Navigate to="/profile" replace />
+    );
+  }
 
   return (
     <div className="flex min-h-dvh flex-col">
       <Header />
       <main className="flex-1 bg-stridex-grey">
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit} onInvalidCapture={handleInvalid}
           className="mx-auto mt-10 flex max-w-sm flex-col gap-3 rounded-2xl bg-stridex-black p-6 text-white"
         >
           <h1 className="text-xl font-bold">
@@ -89,12 +104,9 @@ function Auth() {
               value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={8} />
           )}
 
-          {/* Error message */}
-          {error && <p className="text-sm text-red-400">{error}</p>}
-
           {/* Action buttons */}
           <button type="submit" disabled={loading}
-            className="rounded-full bg-stridex-darkgreen px-4 py-2 font-semibold hover:bg-stridex-green disabled:opacity-50">
+            className="rounded-full bg-stridex-green px-4 py-2 font-semibold hover:bg-stridex-green-hover disabled:opacity-50">
             {loading ? 'Loading...' : mode === 'login' ? 'Log in' : 'Sign up'}
           </button>
 

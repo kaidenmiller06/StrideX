@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Person } from "react-bootstrap-icons";
+
 import FormInput from "./FormInput";
 import type { ProfileFormProps } from "../../types/profile";
+import { handleInvalid } from "../../lib/formValidation";
 
-function ProfileForm({ profile, onSave, onCancel, onDelete, error, saving }: ProfileFormProps) {
+function ProfileForm({ profile, onSave, onCancel, onDelete, saving }: ProfileFormProps) {
   const [username, setUsername] = useState<string>(profile?.username ?? '');
   const [bio, setBio] = useState<string>(profile?.bio ?? '');
   const [tags, setTags] = useState<string[]>(profile?.tags ?? []);
@@ -16,10 +18,11 @@ function ProfileForm({ profile, onSave, onCancel, onDelete, error, saving }: Pro
   return (
     <main className="flex-1 bg-stridex-grey">
       <form
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit} onInvalidCapture={handleInvalid}
         className="mx-auto mt-10 flex max-w-sm flex-col gap-3 rounded-2xl bg-stridex-black p-6 text-white"
       >
         <div className="flex flex-col gap-2 mb-4">
+          {/* Form Header */}
           <div className="flex flex-row gap-2 mb-2">
             <div className="flex flex-col gap-2">
               <h1 className="text-2xl font-bold">
@@ -49,9 +52,6 @@ function ProfileForm({ profile, onSave, onCancel, onDelete, error, saving }: Pro
           <FormInput id="tags" label="Tags" type="text" placeholder="Enter Tags (comma-separated)"
             value={tags.join(', ')} onChange={(e) => setTags(e.target.value.split(',').map((t) => t.trim()))}
             maxLength={100} />
-
-          {/* Error message */}
-          {error && <p className="text-sm text-red-400">{error}</p>}
           
           {/* Action buttons */}
           {onCancel && <button type="button" onClick={onCancel}
@@ -64,7 +64,7 @@ function ProfileForm({ profile, onSave, onCancel, onDelete, error, saving }: Pro
             {saving ? "Saving..." : "Save Profile"}
           </button>
 
-          {onCancel && <button type="button" onClick={onDelete} disabled={saving}
+          {onDelete && <button type="button" onClick={onDelete} disabled={saving}
             className="rounded-full bg-red-500 mt-2 px-4 py-2 font-semibold hover:bg-red-600 disabled:opacity-50">
             Delete Account
           </button>}

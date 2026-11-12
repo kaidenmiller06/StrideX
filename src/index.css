@@ -2,22 +2,30 @@
 @import "tailwindcss";
 
 @theme {
-  --color-stridex-green: #32cd32;
-  --color-stridex-darkgreen: #1f8f1f;
+  --color-stridex-green: #1f8f1f;
+  --color-stridex-green-hover: #32cd32;
   --color-stridex-black: #18181b;
   --color-stridex-grey: #2d2d2d;
   --color-stridex-lightgrey: #969696;
-  --color-stridex-hover: #27272c;
-  --color-stridex-active: #0f0f11;
+  --color-stridex-black-hover: #27272c;
+  --color-stridex-black-active: #0f0f11;
 
   --font-orbitron: "Orbitron", sans-serif;
 }
 
-/* Scrollbar and header styling to match design theme */
+/* Set base styling to match design theme */
 @layer base {
   * {
     scrollbar-width: thin;
     scrollbar-color: var(--color-stridex-lightgrey) transparent;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-stridex-grey);
   }
 
   h1, h2, h3, h4, h5, h6 {

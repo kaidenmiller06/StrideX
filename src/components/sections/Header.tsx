@@ -1,8 +1,10 @@
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { Person } from 'react-bootstrap-icons';
+import toast from 'react-hot-toast';
+
 import NavItem from '../ui/NavItem';
+import { authClient, logoutState } from '../../lib/authClient';
 import logo from '../../assets/branding/logo.svg';
-import { authClient } from '../../lib/authClient';
 
 /**
  * Header component for the application, containing navigation links to the main sections.
@@ -11,7 +13,9 @@ function Header() {
   const { data: session } = authClient.useSession();
 
   const handleLogout = async () => {
+    logoutState.intentional = true;
     await authClient.signOut();
+    toast.success('You have been logged out', { id: 'logout-success' });
   };
 
   return (
@@ -33,17 +37,27 @@ function Header() {
         <div className="flex items-center gap-4">
           {session ? (
             <>
-              <button onClick={handleLogout} className="font-orbitron font-bold text-white hover:underline active:text-stridex-darkgreen">
+              <button
+                onClick={handleLogout}
+                className="font-orbitron font-bold text-white cursor-pointer hover:underline active:text-stridex-green"
+              >
                 Log out
               </button>
-              <Link to="/profile" className="shrink-0">
-                <Person size={30} className="text-white" />
-              </Link>
+
+              <NavLink
+                to="/profile"
+                end
+                className={({ isActive }) =>
+                  `shrink-0 active:text-stridex-green ${
+                    isActive ? 'text-stridex-green-hover' : 'text-white'
+                  }`
+                }
+              >
+                <Person size={30} />
+              </NavLink>
             </>
           ) : (
-            <Link to="/auth" className="font-orbitron font-bold text-white hover:underline active:text-stridex-darkgreen">
-              Log in
-            </Link>
+            <NavItem to="/auth" end>Log in</NavItem>
           )}
         </div>
       </div>
