@@ -45,7 +45,7 @@ function ProfileForm({ profile, onSave, onCancel, onDelete, saving }: ProfileFor
             value={username} onChange={(e) => setUsername(e.target.value)}
             required pattern="[a-zA-Z0-9_]{3,20}" title="3-20 letters, numbers, or underscores" />
 
-          <FormInput id="bio" label="Bio" type="text" placeholder="Enter User Bio"
+          <FormInput id="bio" label="Bio" multiline placeholder="Enter User Bio"
             value={bio ?? ''} onChange={(e) => setBio(e.target.value)}
             maxLength={150} />
 
@@ -55,12 +55,12 @@ function ProfileForm({ profile, onSave, onCancel, onDelete, saving }: ProfileFor
           
           {/* Action buttons */}
           {onCancel && <button type="button" onClick={onCancel}
-            className="rounded-full bg-stridex-grey mt-2 px-4 py-2 font-semibold hover:bg-stridex-hover">
+            className="rounded-full bg-stridex-grey mt-2 px-4 py-2 font-semibold hover:bg-stridex-black-hover">
             Cancel
           </button>}
 
           <button type="submit" disabled={saving}
-            className="rounded-full bg-stridex-green mt-2 px-4 py-2 font-semibold hover:bg-stridex-darkgreen disabled:opacity-50">
+            className="rounded-full bg-stridex-green mt-2 px-4 py-2 font-semibold hover:bg-stridex-green-hover disabled:opacity-50">
             {saving ? "Saving..." : "Save Profile"}
           </button>
 

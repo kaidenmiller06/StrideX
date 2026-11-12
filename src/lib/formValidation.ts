@@ -1,4 +1,4 @@
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 /**
  * Shows the first failed native validation as a toast instead of the browser bubble.

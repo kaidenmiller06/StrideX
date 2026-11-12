@@ -2,8 +2,9 @@
 @import "tailwindcss";
 
 @theme {
-  --color-stridex-green: #1f8f1f;
-  --color-stridex-green-hover: #32cd32;
+  --color-stridex-green: #32cd32;
+  --color-stridex-green-hover: #1f8f1f;
+  --color-stridex-green-active: #1f8f1f;
   --color-stridex-black: #18181b;
   --color-stridex-grey: #2d2d2d;
   --color-stridex-lightgrey: #969696;

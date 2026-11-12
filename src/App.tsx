@@ -15,8 +15,14 @@ function App() {
     <BrowserRouter>
       <Toaster
         position="top-center"
+        containerStyle={{ top: 70 }}
         toastOptions={{
-          style: { background: '#18181b', color: '#fff' }, // stridex-black
+          style: {
+            background: '#18181b',
+            color: '#fff',
+          },
+          success: { iconTheme: { primary: '#32cd32', secondary: '#18181b' } },
+          error: { iconTheme: { primary: '#ef4444 ', secondary: '#18181b' } },
         }}
       />
 

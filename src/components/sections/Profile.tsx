@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Person, SendFill } from 'react-bootstrap-icons';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 import Header from './Header';
 import ProfileForm from '../ui/ProfileForm';

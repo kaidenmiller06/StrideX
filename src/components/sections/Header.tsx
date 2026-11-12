@@ -1,6 +1,6 @@
 import { Link, NavLink } from 'react-router-dom';
 import { Person } from 'react-bootstrap-icons';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 import NavItem from '../ui/NavItem';
 import { authClient, logoutState } from '../../lib/authClient';
@@ -39,7 +39,7 @@ function Header() {
             <>
               <button
                 onClick={handleLogout}
-                className="font-orbitron font-bold text-white cursor-pointer hover:underline active:text-stridex-green"
+                className="font-orbitron font-bold text-white cursor-pointer hover:underline active:text-stridex-green-active"
               >
                 Log out
               </button>
@@ -48,8 +48,8 @@ function Header() {
                 to="/profile"
                 end
                 className={({ isActive }) =>
-                  `shrink-0 active:text-stridex-green ${
-                    isActive ? 'text-stridex-green-hover' : 'text-white'
+                  `shrink-0 active:text-stridex-green-active ${
+                    isActive ? 'text-stridex-green' : 'text-white'
                   }`
                 }
               >
