@@ -18,8 +18,11 @@ function ConnectionPill({img, name, lastMessage, timestamp}: ConnectionPillProps
   return (
     <button className="flex flex-row items-center w-full p-2 px-3 bg-stridex-black rounded-full text-white hover:bg-stridex-hover focus:border-stridex-darkgreen focus:ring-2 focus:ring-stridex-green focus:ring-opacity-50 active:bg-stridex-active transition-colors duration-300">
       {/* Replace with Profile photo */}
-      {/* <img src={img} alt={name} className="w-10 h-10 rounded-full" /> */}
-      <Person size={40} className="shrink-0 text-stridex-lightgrey" />
+      {img ? (
+        <img src={img} alt={name} className="w-10 h-10 rounded-full" />
+      ) : (
+        <Person size={40} className="shrink-0 text-stridex-lightgrey" />
+      )}
 
       {/* Name and last message */}
       <div className="flex min-w-0 flex-1 flex-col ml-2">
