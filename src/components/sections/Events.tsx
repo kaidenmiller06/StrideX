@@ -3,7 +3,7 @@ import 'leaflet/dist/leaflet.css'
 import {useState} from 'react'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
-import AddressToCoords from '../../scripts/AddressToCoords'
+// import AddressToCoords from '../../scripts/AddressToCoords'
 import Header from './Header'
 
 
