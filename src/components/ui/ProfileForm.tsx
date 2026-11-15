@@ -1,24 +1,101 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Person } from "react-bootstrap-icons";
+import { toast } from "react-hot-toast";
 
 import FormInput from "./FormInput";
 import type { ProfileFormProps } from "../../types/profile";
+import { authClient } from "../../lib/authClient";
 import { handleInvalid } from "../../lib/formValidation";
 
-function ProfileForm({ profile, onSave, onCancel, onDelete, saving }: ProfileFormProps) {
+function ProfileForm({ profile, onSave, onCancel, canDelete }: ProfileFormProps) {
+  const navigate = useNavigate();
+
   const [username, setUsername] = useState<string>(profile?.username ?? '');
   const [bio, setBio] = useState<string>(profile?.bio ?? '');
   const [tags, setTags] = useState<string[]>(profile?.tags ?? []);
 
-  const handleSubmit = (e: React.SyntheticEvent) => {
+  const [saving, setSaving] = useState(false);
+
+  /**
+   * Save the profile data to the server and call the onSave callback with the updated data.
+   * @param e - The form submission event.
+   */
+  const submitProfile = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    onSave({ username, bio, tags });
+    setSaving(true);
+    try {
+      const res = await fetch("/api/profile/me", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, bio, tags }),
+      });
+
+      // If the user is not authenticated, redirect to the auth page.
+      if (res.status === 401) {
+        toast.error(
+          "You must be signed in to save your profile",
+          { id: 'profile-error' }
+        );
+        navigate("/auth");
+        return;
+      }
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        toast.error(
+          body?.error ?? "Could not save profile",
+          { id: 'profile-error' }
+        );
+        return;
+      }
+
+      const { profile: saved } = await res.json();
+      toast.success("Profile saved", { id: 'profile-success' });
+      onSave(saved);
+    } catch {
+      toast.error(
+        "Network error, please try again",
+        { id: 'profile-error' }
+      );
+    } finally {
+      setSaving(false);
+    }
   }
+  
+  /**
+   * Delete the current user's account and profile. Signs the user out and redirects to the home page.
+   */
+  const deleteAccount = async () => {
+    if (!confirm("Delete your account? Your profile and login will be permanently removed. This cannot be undone.")) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/me", { method: "DELETE", credentials: "include" });
+      if (!res.ok) throw new Error(`Delete request failed: ${res.status}`);
+
+      // Ensure user is no longer authenticated after account deletion
+      try {
+        await authClient.signOut();
+      } catch {
+        console.error("Failed to sign out after account deletion");
+      }
+
+      toast.success("Account deleted", { id: 'profile-success' });
+      navigate("/", { replace: true });
+    } catch (err) {
+      console.error(err);
+      toast.error(
+        "Failed to delete account. Please try again.",
+        { id: 'profile-error' }
+      );
+      setSaving(false);
+    }
+  };
 
   return (
     <main className="flex-1 bg-stridex-grey">
       <form
-        onSubmit={handleSubmit} onInvalidCapture={handleInvalid}
+        onSubmit={submitProfile} onInvalidCapture={handleInvalid}
         className="mx-auto mt-10 flex max-w-sm flex-col gap-3 rounded-2xl bg-stridex-black p-6 text-white"
       >
         <div className="flex flex-col gap-2 mb-4">
@@ -64,7 +141,7 @@ function ProfileForm({ profile, onSave, onCancel, onDelete, saving }: ProfileFor
             {saving ? "Saving..." : "Save Profile"}
           </button>
 
-          {onDelete && <button type="button" onClick={onDelete} disabled={saving}
+          {canDelete && <button type="button" onClick={deleteAccount} disabled={saving}
             className="rounded-full bg-red-500 mt-2 px-4 py-2 font-semibold hover:bg-red-600 disabled:opacity-50">
             Delete Account
           </button>}

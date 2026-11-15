@@ -4,9 +4,11 @@
 @theme {
   --color-stridex-green: #32cd32;
   --color-stridex-green-hover: #1f8f1f;
-  --color-stridex-green-active: #1f8f1f;
+  --color-stridex-green-active: #1a5d1a;
   --color-stridex-black: #18181b;
   --color-stridex-grey: #2d2d2d;
+  --color-stridex-grey-hover: #3c3c3c;
+  --color-stridex-grey-active: #3c3c3c;
   --color-stridex-lightgrey: #969696;
   --color-stridex-black-hover: #27272c;
   --color-stridex-black-active: #0f0f11;

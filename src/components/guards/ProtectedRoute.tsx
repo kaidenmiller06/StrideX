@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
-import Header from './sections/Header';
-import { authClient, logoutState } from '../lib/authClient';
+import Header from '../sections/Header';
+import { authClient, logoutState } from '../../lib/authClient';
 
 /**
  * ProtectedRoute component that checks if the user is authenticated before rendering the child routes.

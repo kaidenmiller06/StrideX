@@ -10,7 +10,7 @@ const router = Router();
 
 // Reserved usernames that cannot be used for profiles
 const RESERVED_USERNAMES = new Set([
-  'me', 'admin', 'auth', 'events', 'connections', 'store', 'api'
+  'me', 'admin', 'auth', 'events', 'connections', 'store', 'api', 'profile', 'setup'
 ]);
 
 
@@ -20,18 +20,26 @@ const RESERVED_USERNAMES = new Set([
 
 // GET/api/profile/me - Get the current authenticated user's profile and account
 router.get('/me', requireAuth, async (req, res) => {
-  const profile = await getProfileByUserId(res.locals.userId);
-  if (!profile) return res.status(404).json({ error: "Profile not found" });
-  res.json({ profile });
+  try {
+    const profile = await getProfileByUserId(res.locals.userId);
+    res.json({ profile: profile || null });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch profile" });
+  }
 });
 
 // PUT/api/profile/me - Update the current authenticated user's profile
 router.put('/me', requireAuth, async (req, res) => {
   const { username, bio, tags } = req.body;
 
-  // Confirm username is 3-20 characters, alphanumeric or underscores, and not reserved
-  if (typeof username !== "string" || !/^[a-zA-Z0-9_]{3,20}$/.test(username)
-    || RESERVED_USERNAMES.has(username.toLowerCase())) {
+  // Confirm username is not a reserved word
+  if (RESERVED_USERNAMES.has(username.toLowerCase())) {
+    return res.status(422).json({ error: "This username is reserved and cannot be used" });
+  }
+
+  // Confirm username is 3-20 characters using alphanumerics or underscores
+  if (typeof username !== "string" || !/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
     return res.status(422).json({ error: "Username must be 3-20 letters, numbers, or underscores" });
   }
 

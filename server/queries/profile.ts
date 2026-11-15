@@ -7,7 +7,7 @@ import { pool } from "../db/pool.js";
  */
 export async function getProfileByUserId(userId: string) {
   const result = await pool.query(
-    `SELECT p.*, u.name, u.image
+    `SELECT p.user_id AS "userId", p.username, p.bio, p.tags, u.name, u.image
      FROM profile p
      JOIN "user" u ON u.id = p.user_id
      WHERE p.user_id = $1`,
@@ -23,7 +23,7 @@ export async function getProfileByUserId(userId: string) {
  */
 export async function getProfileByUsername(username: string) {
   const result = await pool.query(
-    `SELECT p.*, u.name, u.image
+    `SELECT p.user_id AS "userId", p.username, p.bio, p.tags, u.name, u.image
      FROM profile p
      JOIN "user" u ON u.id = p.user_id
      WHERE p.username = $1`,

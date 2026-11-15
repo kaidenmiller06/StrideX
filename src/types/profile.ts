@@ -2,6 +2,7 @@
  * Server-side types for the response from the profile API.
  */
 export type ProfileData = {
+  userId: string;
   name: string;
   image: string | null;
   username: string;
@@ -19,9 +20,8 @@ export type ProfileFormData = {
 };
 
 export type ProfileFormProps = {
-  profile: ProfileData | null;
+  profile?: ProfileData | null;
   onSave: (data: ProfileFormData) => void;
   onCancel?: () => void;
-  onDelete?: () => void;
-  saving?: boolean;
+  canDelete?: boolean;
 };

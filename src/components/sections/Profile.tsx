@@ -1,50 +1,55 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { Person, SendFill } from 'react-bootstrap-icons';
 import { toast } from 'react-hot-toast';
 
 import Header from './Header';
 import ProfileForm from '../ui/ProfileForm';
-import type { ProfileData, ProfileFormData } from '../../types/profile';
+import Button from '../ui/Button';
+
+import { useRequireProfile } from '../../hooks/useRequireProfile';
 import { authClient } from '../../lib/authClient';
+import type { ProfileData, ProfileFormData } from '../../types/profile';
 
 /**
  * Profile component that displays a user's profile information and allows editing if it's the current user's profile. 
  */
 function Profile() {
+  const { data: session, isPending } = authClient.useSession();
   const { username } = useParams<{ username?: string }>();
   const navigate = useNavigate();
-  const isOwn = !username;
+  const requireProfile = useRequireProfile();
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
+
+  const isOwn = !!session && !!profile && profile.userId === session.user.id;
 
   // Fetch profile data when the component mounts or when the username changes.
   useEffect(() => {
     let cancelled = false;
     setLoaded(false);
+    setEditing(false);
 
     // Fetch a user's profile data from the server. If no username is provided, fetch the current user's profile.
-    fetch(isOwn ? '/api/profile/me' : `/api/profile/${encodeURIComponent(username!)}`)
+    fetch(`/api/profile/${encodeURIComponent(username!)}`)
       .then(async (r) => {
-        if (r.status === 404) return { profile: null, notFound: true };
+        if (r.status === 404) return { profile: null };
         if (!r.ok) throw new Error(`Profile request failed: ${r.status}`);
         return r.json();
       })
-      .then(({ profile, notFound }) => {
+      .then(({ profile }) => {
         if (cancelled) return;
 
-        // Redirect to home if other user's profile is not found
-        if (!isOwn && (notFound || !profile)) {
+        // Redirect to home if profile is not found
+        if (!profile) {
           toast.error('User not found', { id: 'profile-error' });
           navigate('/', { replace: true });
           return;
         }
 
-        setProfile(profile ?? null);
-        setEditing(isOwn && !profile);
+        setProfile(profile);
       })
       .catch((err) => {
         if (cancelled) return;
@@ -61,89 +66,46 @@ function Profile() {
   }, [username]);
 
   /**
-   * Save the profile data to the server.
-   * @param values - The profile form data to save.
-   * @returns A promise that resolves when the save operation is complete.
+   * Updates the local state and navigates to the new profile URL if the username has changed.
+   * @param saved - the saved profile data returned from the server after a successful save operation
    */
-  const handleSave = async (values: ProfileFormData) => {
-    setSaving(true);
-    try {
-      const res = await fetch("/api/profile/me", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
-
-      // If the user is not authenticated, redirect to the auth page.
-      if (res.status === 401) {
-        toast.error(
-          "You must be signed in to save your profile",
-          { id: 'profile-error' }
-        );
-        navigate("/auth");
-        return;
-      }
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        toast.error(
-          body?.error ?? "Could not save profile",
-          { id: 'profile-error' }
-        );
-        return;
-      }
-
-      const data = await res.json();
-      setProfile(data.profile);
-      setEditing(false);
-      toast.success("Profile saved", { id: 'profile-success' });
-    } catch {
-      toast.error(
-        "Network error, please try again",
-        { id: 'profile-error' }
-      );
-    } finally {
-      setSaving(false);
+  const handleSave = (saved: ProfileFormData) => {
+    setProfile({ ...profile!, ...saved });
+    setEditing(false);
+    if (saved.username !== profile!.username) {
+      navigate(`/profile/${saved.username}`, { replace: true });
     }
   };
 
   /**
-   * Delete the current user's account and profile. Signs the user out and redirects to the home page.
+   * Handles the "Connect" button click.
    */
-  const handleDelete = async () => {
-    if (!confirm("Delete your account? Your profile and login will be permanently removed. This cannot be undone.")) return;
-    setSaving(true);
+  const handleConnect = async () => {
+    if (!session) {
+      navigate('/auth');
+      return;
+    }
+
     try {
-      const res = await fetch("/api/me", { method: "DELETE", credentials: "include" });
-      if (!res.ok) throw new Error(`Delete request failed: ${res.status}`);
+      const mine = await requireProfile();
+      if (!mine) return;
 
-      try {
-        await authClient.signOut();
-      } catch {
-        console.error("Failed to sign out after account deletion");
-      }
-
-      toast.success("Account deleted", { id: 'profile-success' });
-      navigate("/", { replace: true });
-    } catch (err) {
-      console.error(err);
-      toast.error(
-        "Failed to delete account. Please try again.",
-        { id: 'profile-error' }
-      );
-      setSaving(false);
+      // send the connection request here
+      console.log(`Sending connection request from ${mine.username} to ${profile!.username}`);
+    } catch {
+      toast.error('Something went wrong, please try again', { id: 'profile-error' });
     }
   };
 
   // Loading state: show only the header while the profile data is being fetched or if the profile is not found.
-  if (!loaded || (!isOwn && !profile)) {
+  if (!loaded || isPending || !profile) {
     return (
       <div className="flex min-h-dvh flex-col bg-stridex-grey">
         <Header />
       </div>
     );
   }
-  
+
   return (
     <>
       <div className="flex min-h-dvh flex-col bg-stridex-grey">
@@ -153,9 +115,8 @@ function Profile() {
           <ProfileForm
             profile={profile}
             onSave={handleSave}
-            onCancel={profile ? () => { setEditing(false); } : undefined}
-            onDelete={profile ? handleDelete : undefined}
-            saving={saving}
+            onCancel={() => setEditing(false)}
+            canDelete={isOwn}
           />
         ) : (
           <main className="flex-1">
@@ -178,21 +139,18 @@ function Profile() {
 
                       <div className="flex flex-row gap-2">
                         {isOwn ? (
-                          <button
-                            className="px-4 py-2 text-white rounded-full border border-white hover:bg-stridex-lightgrey focus:border-stridex-green focus:ring-2 focus:ring-stridex-green-hover focus:ring-opacity-50 active:bg-white transition-colors duration-300"
-                            onClick={() => setEditing(true)}
-                          >
+                          <Button onClick={() => setEditing(true)}>
                             Edit Profile
-                          </button>
+                          </Button>
                         ) : (
                           <>
-                            <button className="px-4 py-2 text-white rounded-full border border-white hover:bg-stridex-lightgrey focus:border-stridex-green focus:ring-2 focus:ring-stridex-green-hover focus:ring-opacity-50 active:bg-white transition-colors duration-300">
+                            <Button onClick={handleConnect}>
                               Connect
-                            </button>
+                            </Button>
 
-                            <button className="aspect-square inline-flex items-center justify-center p-2 text-white rounded-full border border-white hover:bg-stridex-lightgrey focus:border-stridex-green focus:ring-2 focus:ring-stridex-green-hover focus:ring-opacity-50 active:bg-white transition-colors duration-300">
+                            <Button>
                               <SendFill size={20} />
-                            </button>
+                            </Button>
                           </>
                         )}
                       </div>

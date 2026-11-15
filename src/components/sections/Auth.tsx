@@ -38,6 +38,11 @@ function Auth() {
 
       if (error) {
         toast.error(error.message ?? 'Something went wrong', { id: 'auth-error' });
+      } else {
+        toast.success(
+          mode === 'register' ? "Account created successfully" : "Logged in successfully",
+          { id: 'auth-success' }
+        );
       }
     } catch {
       toast.error("Network error, please try again", { id: 'auth-error' });
@@ -68,7 +73,6 @@ function Auth() {
 
   // If the user is already authenticated, show a success toast and redirect to the profile page.
   if (session) {
-    toast.success("You are now signed in", { id: 'auth-success' });
     return (
       <Navigate to="/profile" replace />
     );
