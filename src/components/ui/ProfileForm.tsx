@@ -4,6 +4,7 @@ import { Person } from "react-bootstrap-icons";
 import { toast } from "react-hot-toast";
 
 import FormInput from "./FormInput";
+import Button from "./Button";
 import type { ProfileFormProps } from "../../types/profile";
 import { authClient } from "../../lib/authClient";
 import { handleInvalid } from "../../lib/formValidation";
@@ -131,20 +132,18 @@ function ProfileForm({ profile, onSave, onCancel, canDelete }: ProfileFormProps)
             maxLength={100} />
           
           {/* Action buttons */}
-          {onCancel && <button type="button" onClick={onCancel}
-            className="rounded-full bg-stridex-grey mt-2 px-4 py-2 font-semibold hover:bg-stridex-black-hover">
+          {onCancel && <Button type="button" variant="grey" className="mb-2" onClick={onCancel}>
             Cancel
-          </button>}
+          </Button>}
 
-          <button type="submit" disabled={saving}
-            className="rounded-full bg-stridex-green mt-2 px-4 py-2 font-semibold hover:bg-stridex-green-hover disabled:opacity-50">
+          <Button type="submit" variant="primary" className="mb-2"  loading={saving}>
             {saving ? "Saving..." : "Save Profile"}
-          </button>
+          </Button>
 
-          {canDelete && <button type="button" onClick={deleteAccount} disabled={saving}
-            className="rounded-full bg-red-500 mt-2 px-4 py-2 font-semibold hover:bg-red-600 disabled:opacity-50">
+          {canDelete && <Button
+            type="button" variant="danger" onClick={deleteAccount} loading={saving}>
             Delete Account
-          </button>}
+          </Button>}
         </div>
       </form>
     </main>

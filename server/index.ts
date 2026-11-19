@@ -10,6 +10,7 @@ import { pool } from "./db/pool.js";
 
 import user from "./routes/user.js";
 import profile from "./routes/profile.js";
+import connection from "./routes/connection.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distPath = path.resolve(__dirname, "../dist");
@@ -40,6 +41,9 @@ app.use("/api/profile", profile);
 
 // User routes
 app.use("/api/me", user);
+
+// Connection routes
+app.use("/api/connection", connection);
 
 // Catch-all for unknown API routes
 app.use("/api", (_req, res) => {

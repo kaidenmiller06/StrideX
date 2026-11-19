@@ -1,4 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
+
+import type { RequestHandler } from 'express';
 import { fromNodeHeaders } from "better-auth/node";
 import { auth } from '../auth.ts';
 
@@ -9,11 +10,15 @@ import { auth } from '../auth.ts';
  * @params res - The Express response object
  * @params next - The next middleware function
  */
-export async function requireAuth(req: Request, res: Response, next: NextFunction) {
-  const session = await auth.api.getSession({
-    headers: fromNodeHeaders(req.headers),
-  });
-  if (!session) return res.status(401).json({ error: "Not logged in" });
-  res.locals.userId = session.user.id;
-  next();
+export const requireAuth: RequestHandler = async (req, res, next) => {
+  try {
+    const session = await auth.api.getSession({
+      headers: fromNodeHeaders(req.headers),
+    });
+    if (!session) return res.status(401).json({ error: "Not logged in" });
+    res.locals.userId = session.user.id;
+    next();
+  } catch (err) {
+    next(err);
+  }
 }

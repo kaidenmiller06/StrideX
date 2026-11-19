@@ -6,10 +6,30 @@ import { toast } from 'react-hot-toast';
 import Header from './Header';
 import ProfileForm from '../ui/ProfileForm';
 import Button from '../ui/Button';
+import SwapLabel from '../ui/SwapLabel';
 
 import { useRequireProfile } from '../../hooks/useRequireProfile';
 import { authClient } from '../../lib/authClient';
 import type { ProfileData, ProfileFormData } from '../../types/profile';
+import type { ConnectionAction, ConnectionStatus } from '../../types/connection';
+
+type ActionConfig = {
+  url: (id: string) => string;
+  method: 'POST' | 'PATCH' | 'DELETE';
+  next: ConnectionStatus;
+  success: string;
+};
+
+const ACTIONS: Record<ConnectionAction, ActionConfig> = {
+  connect: { url: (id) => `/api/connection/${id}`,        method: 'POST',   next: 'outgoing',  success: 'Request sent' },
+  accept:  { url: (id) => `/api/connection/${id}`,        method: 'PATCH',  next: 'connected', success: 'Connection accepted' },
+  cancel:  { url: (id) => `/api/connection/cancel/${id}`, method: 'DELETE', next: 'none',      success: 'Request canceled' },
+  remove:  { url: (id) => `/api/connection/remove/${id}`, method: 'DELETE', next: 'none',      success: 'Connection removed' },
+  reject:  { url: (id) => `/api/connection/reject/${id}`, method: 'DELETE', next: 'none',      success: 'Request rejected' },
+};
+
+const popIn = 'animate-pop-in motion-reduce:animate-none';
+const hoverDanger = 'hover:border-red-500 hover:text-red-400 hover:bg-red-500/10 focus-visible:outline-red-500';
 
 /**
  * Profile component that displays a user's profile information and allows editing if it's the current user's profile. 
@@ -21,12 +41,22 @@ function Profile() {
   const requireProfile = useRequireProfile();
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('none');
   const [loaded, setLoaded] = useState(false);
   const [editing, setEditing] = useState(false);
 
+  const [pending, setPending] = useState<string | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState(false);
+
+  // Determine if the profile being viewed belongs to the current authenticated user
   const isOwn = !!session && !!profile && profile.userId === session.user.id;
 
-  // Fetch profile data when the component mounts or when the username changes.
+
+  // -----------------------------------------------------
+  // Profile Data Fetching
+  // -----------------------------------------------------
+
+  // Fetch the profile data for the given username when the component mounts or when the username changes.
   useEffect(() => {
     let cancelled = false;
     setLoaded(false);
@@ -35,11 +65,11 @@ function Profile() {
     // Fetch a user's profile data from the server. If no username is provided, fetch the current user's profile.
     fetch(`/api/profile/${encodeURIComponent(username!)}`)
       .then(async (r) => {
-        if (r.status === 404) return { profile: null };
+        if (r.status === 404) return { profile: null, connectionStatus: null };
         if (!r.ok) throw new Error(`Profile request failed: ${r.status}`);
         return r.json();
       })
-      .then(({ profile }) => {
+      .then(({ profile, connectionStatus }) => {
         if (cancelled) return;
 
         // Redirect to home if profile is not found
@@ -50,6 +80,7 @@ function Profile() {
         }
 
         setProfile(profile);
+        setConnectionStatus(connectionStatus);
       })
       .catch((err) => {
         if (cancelled) return;
@@ -61,9 +92,9 @@ function Profile() {
         navigate('/', { replace: true });
       })
       .finally(() => { if (!cancelled) setLoaded(true); });
-    
+
     return () => { cancelled = true; };
-  }, [username]);
+  }, [username, session?.user.id, isPending]);
 
   /**
    * Updates the local state and navigates to the new profile URL if the username has changed.
@@ -77,25 +108,57 @@ function Profile() {
     }
   };
 
-  /**
-   * Handles the "Connect" button click.
-   */
-  const handleConnect = async () => {
+
+  // -----------------------------------------------------
+  // Connection Handling
+  // -----------------------------------------------------
+
+  const handleConnectionAction = async (name: ConnectionAction) => {
+    if (pending) return; // ignore double clicks
+
     if (!session) {
       navigate('/auth');
+      toast.error('You must be logged in to connect with other users', { id: 'connection-error' });
       return;
     }
 
-    try {
-      const mine = await requireProfile();
-      if (!mine) return;
+    const action = ACTIONS[name];
+    const id = profile!.userId;
+    const prev = connectionStatus;
 
-      // send the connection request here
-      console.log(`Sending connection request from ${mine.username} to ${profile!.username}`);
+    setConfirmRemove(false);
+    setPending(name);
+
+    try {
+      setConnectionStatus(action.next);
+
+      const res = await fetch(action.url(id), { method: action.method, credentials: 'include' });
+      const body = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        toast.success(action.success, { id: 'connection-success' });
+      } else if (res.status == 409 && body.status) {
+        setConnectionStatus(body.status === 'accepted' ? 'connected' : 'outgoing');
+      } else if (res.status == 404) {
+        setConnectionStatus('none');
+        toast.error('That request no longer exists', { id: 'connection-error' });
+      } else {
+        setConnectionStatus(prev);
+        toast.error(body.error || 'An error occurred', { id: 'connection-error' });
+      }
     } catch {
-      toast.error('Something went wrong, please try again', { id: 'profile-error' });
+      setConnectionStatus(prev);
+      toast.error('Something went wrong, pleast try again', { id: 'connection-error' });
+    } finally {
+      setPending(null);
     }
-  };
+  }
+
+  useEffect(() => {
+    if (!confirmRemove) return;
+    const t = setTimeout(() => setConfirmRemove(false), 3000);
+    return () => clearTimeout(t);
+  }, [confirmRemove]);
 
   // Loading state: show only the header while the profile data is being fetched or if the profile is not found.
   if (!loaded || isPending || !profile) {
@@ -109,7 +172,7 @@ function Profile() {
   return (
     <>
       <div className="flex min-h-dvh flex-col bg-stridex-grey">
-        <Header />
+        <Header highlightProfile={isOwn} />
         {/* Show the profile form if editing, otherwise show the profile details */}
         {editing ? (
           <ProfileForm
@@ -139,18 +202,48 @@ function Profile() {
 
                       <div className="flex flex-row gap-2">
                         {isOwn ? (
-                          <Button onClick={() => setEditing(true)}>
-                            Edit Profile
-                          </Button>
+                          <Button variant="outline" onClick={() => setEditing(true)}>Edit Profile</Button>
                         ) : (
                           <>
-                            <Button onClick={handleConnect}>
-                              Connect
-                            </Button>
+                            {(!connectionStatus || connectionStatus === 'none') && (
+                              <Button variant="primary" loading={pending === 'connect'} onClick={() => handleConnectionAction('connect')}>
+                                Connect
+                              </Button>
+                            )}
 
-                            <Button>
-                              <SendFill size={20} />
-                            </Button>
+                            {connectionStatus === 'outgoing' && (
+                              <Button variant="outline" className={popIn} onClick={() => handleConnectionAction('cancel')}>
+                                Requested
+                              </Button>
+                            )}
+
+                            {connectionStatus === 'incoming' && (
+                              <>
+                                <Button variant="primary" loading={pending === 'accept'} onClick={() => handleConnectionAction('accept')}>
+                                  Accept
+                                </Button>
+                                <Button variant="danger" className={`${popIn}`} loading={pending === 'reject'}
+                                  onClick={() => handleConnectionAction('reject')}>
+                                  Reject
+                                </Button>
+                              </>
+                            )}
+
+                            {connectionStatus === 'connected' && (
+                              <>
+                                <Button
+                                  variant={confirmRemove ? 'danger' : 'default'}
+                                  className={confirmRemove ? '' : hoverDanger}
+                                  onClick={() => (confirmRemove ? handleConnectionAction('remove') : setConfirmRemove(true))}
+                                  onBlur={() => setConfirmRemove(false)}
+                                >
+                                  <SwapLabel idle="Connected" hover="Remove" active="Confirm?" isActive={confirmRemove} />
+                                </Button>
+                                <Button aria-label="Message" className={popIn} onClick={() => navigate(`/chat/${profile?.username}`)}>
+                                  <SendFill size={20} />
+                                </Button>
+                              </>
+                            )}
                           </>
                         )}
                       </div>

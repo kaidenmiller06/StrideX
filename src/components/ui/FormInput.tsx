@@ -37,7 +37,7 @@ type FormInputProps = {
  */
 function FormInput({ id, label, type, multiline, value, onChange, placeholder, required = false, min, max, minLength, maxLength, pattern, autoComplete, title}: FormInputProps) {
   const classes =
-    "w-full rounded-lg bg-stridex-grey mb-2 px-3 py-2 text-white hover:bg-stridex-black-hover focus:outline-none focus:ring-2 focus:ring-stridex-green-hover";
+    "w-full rounded-lg bg-stridex-grey mb-2 px-3 py-2 text-white hover:bg-stridex-grey-hover focus:outline-none focus:ring-2 focus:ring-stridex-green-hover";
   
   return (
     <div className="flex flex-col gap-2">

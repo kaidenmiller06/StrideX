@@ -13,7 +13,7 @@ function ProfileSetup() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-stridex-grey">
-      <Header />
+      <Header highlightProfile />
       <ProfileForm
         onSave={(saved: ProfileFormData) => {
           navigate(`/profile/${saved.username}`, { replace: true });

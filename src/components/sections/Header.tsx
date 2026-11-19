@@ -1,4 +1,4 @@
-import { Link, NavLink } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Person } from 'react-bootstrap-icons';
 import { toast } from 'react-hot-toast';
 
@@ -9,9 +9,10 @@ import logo from '../../assets/branding/logo.svg';
 /**
  * Header component for the application, containing navigation links to the main sections.
  */
-function Header() {
+function Header({ highlightProfile = false}: { highlightProfile?: boolean }) {
   const { data: session } = authClient.useSession();
 
+  // Sign out the user and redirect to the login page.
   const handleLogout = async () => {
     logoutState.intentional = true;
     await authClient.signOut();
@@ -44,17 +45,12 @@ function Header() {
                 Log out
               </button>
 
-              <NavLink
+              <Link
                 to="/profile"
-                end
-                className={({ isActive }) =>
-                  `shrink-0 active:text-stridex-green-active ${
-                    isActive ? 'text-stridex-green' : 'text-white'
-                  }`
-                }
+                className={`shrink-0 active:text-stridex-green-active ${highlightProfile ? 'text-stridex-green' : 'text-white'}`}
               >
                 <Person size={30} />
-              </NavLink>
+              </Link>
             </>
           ) : (
             <NavItem to="/auth" end>Log in</NavItem>

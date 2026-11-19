@@ -1,10 +1,15 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { optionalAuth } from '../middleware/optionalAuth.js';
+
 import {
   getProfileByUserId,
   getProfileByUsername,
   updateProfile
 } from '../queries/profile.js';
+
+import { getConnectionStatus } from '../queries/connection.js';
+import type { ConnectionStatus } from '../../src/types/connection.js';
 
 const router = Router();
 
@@ -56,10 +61,23 @@ router.put('/me', requireAuth, async (req, res) => {
 });
 
 // GET/api/profile/:username - Get a user's profile and account by username
-router.get('/:username', async (req, res) => {
+router.get('/:username', optionalAuth, async (req, res) => {
+  if (typeof req.params.username !== 'string') {
+    return res.status(400).json({ error: "Invalid username" });
+  }
+
   const profile = await getProfileByUsername(req.params.username);
   if (!profile) return res.status(404).json({ error: "Profile not found" });
-  res.json({ profile });
+
+  // Also fetch the connection status if the user is logged in and viewing another user's profile
+  const session = res.locals.session;
+
+  let connectionStatus: ConnectionStatus | null = null;
+  if (session && session.user.id !== profile.userId) {
+    connectionStatus = await getConnectionStatus(session.user.id, profile.userId);
+  }
+
+  res.json({ profile, connectionStatus });
 });
 
 
