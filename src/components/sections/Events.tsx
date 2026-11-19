@@ -7,6 +7,7 @@ import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 import AddressToCoords from '../../scripts/AddressToCoords'
 import Header from './Header'
+import FormInput from '../ui/FormInput'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import {authClient} from '../../lib/authClient'
@@ -100,36 +101,25 @@ function EventForm({defaultDate, onSave, onCancel, error, saving}: EventFormProp
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <h2 className="text-xl font-bold">Create Event</h2>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Title
-          <input value={title} onChange={(e) => setTitle(e.target.value)} required className={inputClass} />
-        </label>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Address
-          <input
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="123 Main St, Elizabethtown, PA"
-            required
-            className={inputClass}
-          />
-        </label>
+        {/* Form Inputs */}
+        <FormInput id='title' label='Title' type='text' placeholder='Race 5k'
+          value={title} onChange={(e) => setTitle(e.target.value)} required/>
+        
+        <FormInput id='address' label='Address' type='text' placeholder='123 Main Street, Elizabethtown, PA'
+          value={address} onChange={(e) => setAddress(e.target.value)} required/>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Date
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className={inputClass} />
-        </label>
+        <FormInput id='date' label='Date' type='date'
+          value={date} onChange={(e) => setDate(e.target.value)} required/>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Description
-          <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={3} className={inputClass} />
-        </label>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Tags (comma separated)
-          <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="XC, Casual" className={inputClass} />
-        </label>
+        <FormInput id='description' label='Description' multiline  placeholder='Enter Event Details...'
+          value={title} onChange={(e) => setTitle(e.target.value)}
+          maxLength = {300}/>
+
+        <FormInput id='tags' label='Tags (commas separated)' type='text'  placeholder='XC, Casual'
+          value={tags} onChange={(e) => setTitle(e.target.value)}
+          maxLength = {50}/>
 
         {error && <p className="text-red-400">{error}</p>}
 
@@ -288,7 +278,7 @@ function Events() {
                 <button
                   onClick={() => shiftMonth(-1)}
                   aria-label="Previous month"
-                  className="rounded px-3 py-1 text-2xl hover:bg-white/10"
+                  className="aria-label rounded px-3 py-1 text-2xl hover:bg-white/10"
                 >
                   ‹
                 </button>
