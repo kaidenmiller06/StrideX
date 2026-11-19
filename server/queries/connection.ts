@@ -102,7 +102,13 @@ export async function acceptConnection(requesterId: string, recipientId: string)
  * @returns A boolean indicating whether the connection was successfully canceled
  */
 export async function cancelConnection(requesterId: string, recipientId: string) {
-  return await rejectConnection(requesterId, recipientId);
+  const { rowCount } = await pool.query(
+    `DELETE FROM connection
+     WHERE requester_id = $1 AND recipient_id = $2
+     AND status = 'pending' OR status = 'accepted'`,
+    [requesterId, recipientId]
+  );
+  return rowCount === 1;
 }
 
 /**
