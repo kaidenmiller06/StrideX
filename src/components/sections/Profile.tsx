@@ -8,28 +8,9 @@ import ProfileForm from '../ui/ProfileForm';
 import Button from '../ui/Button';
 import SwapLabel from '../ui/SwapLabel';
 
-import { useRequireProfile } from '../../hooks/useRequireProfile';
 import { authClient } from '../../lib/authClient';
 import type { ProfileData, ProfileFormData } from '../../types/profile';
 import type { ConnectionAction, ConnectionStatus } from '../../types/connection';
-
-type ActionConfig = {
-  url: (id: string) => string;
-  method: 'POST' | 'PATCH' | 'DELETE';
-  next: ConnectionStatus;
-  success: string;
-};
-
-const ACTIONS: Record<ConnectionAction, ActionConfig> = {
-  connect: { url: (id) => `/api/connection/${id}`,        method: 'POST',   next: 'outgoing',  success: 'Request sent' },
-  accept:  { url: (id) => `/api/connection/${id}`,        method: 'PATCH',  next: 'connected', success: 'Connection accepted' },
-  cancel:  { url: (id) => `/api/connection/cancel/${id}`, method: 'DELETE', next: 'none',      success: 'Request canceled' },
-  remove:  { url: (id) => `/api/connection/remove/${id}`, method: 'DELETE', next: 'none',      success: 'Connection removed' },
-  reject:  { url: (id) => `/api/connection/reject/${id}`, method: 'DELETE', next: 'none',      success: 'Request rejected' },
-};
-
-const popIn = 'animate-pop-in motion-reduce:animate-none';
-const hoverDanger = 'hover:border-red-500 hover:text-red-400 hover:bg-red-500/10 focus-visible:outline-red-500';
 
 /**
  * Profile component that displays a user's profile information and allows editing if it's the current user's profile. 
@@ -38,7 +19,6 @@ function Profile() {
   const { data: session, isPending } = authClient.useSession();
   const { username } = useParams<{ username?: string }>();
   const navigate = useNavigate();
-  const requireProfile = useRequireProfile();
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('none');
@@ -79,6 +59,7 @@ function Profile() {
           return;
         }
 
+        // Set the profile and connection status in state
         setProfile(profile);
         setConnectionStatus(connectionStatus);
       })
@@ -113,6 +94,26 @@ function Profile() {
   // Connection Handling
   // -----------------------------------------------------
 
+  // Configuration for each connection action (API, method, next state, and success message)
+  type ActionConfig = {
+    url: (id: string) => string;
+    method: 'POST' | 'PATCH' | 'DELETE';
+    next: ConnectionStatus;
+    success: string;
+  };
+
+  const ACTIONS: Record<ConnectionAction, ActionConfig> = {
+    connect: { url: (id) => `/api/connection/${id}`,        method: 'POST',   next: 'outgoing',  success: 'Request sent' },
+    accept:  { url: (id) => `/api/connection/${id}`,        method: 'PATCH',  next: 'connected', success: 'Connection accepted' },
+    cancel:  { url: (id) => `/api/connection/cancel/${id}`, method: 'DELETE', next: 'none',      success: 'Request canceled' },
+    remove:  { url: (id) => `/api/connection/remove/${id}`, method: 'DELETE', next: 'none',      success: 'Connection removed' },
+    reject:  { url: (id) => `/api/connection/reject/${id}`, method: 'DELETE', next: 'none',      success: 'Request rejected' },
+  };
+
+  /**
+   * Handles connection actions by sending the appropriate request to the server and updating the local connection status.
+   * @param name - The name of the connection action to perform (connect, accept, cancel, remove, reject)
+   */
   const handleConnectionAction = async (name: ConnectionAction) => {
     if (pending) return; // ignore double clicks
 
@@ -122,33 +123,52 @@ function Profile() {
       return;
     }
 
-    const action = ACTIONS[name];
+    // Set the action and confirmation state for the connection action being performed
     const id = profile!.userId;
+    const action = ACTIONS[name];
     const prev = connectionStatus;
 
     setConfirmRemove(false);
     setPending(name);
 
     try {
+      // Optimistically update the connection status and send request to server
       setConnectionStatus(action.next);
 
       const res = await fetch(action.url(id), { method: action.method, credentials: 'include' });
       const body = await res.json().catch(() => ({}));
 
       if (res.ok) {
-        toast.success(action.success, { id: 'connection-success' });
+        // Update connection status based on server response if it differs from the expected next state
+        const serverStatus: ConnectionStatus | null =
+          body.status === 'accepted' ? 'connected'
+           : body.status === 'pending' ? 'outgoing'
+           : null;
+        
+        setConnectionStatus(serverStatus ?? action.next);
+
+        toast.success(
+          serverStatus === 'connected' && name === 'connect' ? 'Connection accepted!' : action.success,
+          { id: 'connection-success' }
+        );
       } else if (res.status == 409 && body.status) {
-        setConnectionStatus(body.status === 'accepted' ? 'connected' : 'outgoing');
+        // Connection already exists, sync the local state with the server's status
+        const synced: ConnectionStatus = body.status === 'accepted' ? 'connected' : 'outgoing';
+        setConnectionStatus(synced);
+        toast(synced === 'connected' ? "You're already connected" : 'Request already sent', {
+          id: 'connection-info',
+        });
       } else if (res.status == 404) {
+        // Other user not found, reset connection status
         setConnectionStatus('none');
-        toast.error('That request no longer exists', { id: 'connection-error' });
+        toast.error('User not found', { id: 'connection-error' });
       } else {
         setConnectionStatus(prev);
         toast.error(body.error || 'An error occurred', { id: 'connection-error' });
       }
     } catch {
       setConnectionStatus(prev);
-      toast.error('Something went wrong, pleast try again', { id: 'connection-error' });
+      toast.error('Something went wrong, please try again', { id: 'connection-error' });
     } finally {
       setPending(null);
     }
@@ -159,6 +179,7 @@ function Profile() {
     const t = setTimeout(() => setConfirmRemove(false), 3000);
     return () => clearTimeout(t);
   }, [confirmRemove]);
+
 
   // Loading state: show only the header while the profile data is being fetched or if the profile is not found.
   if (!loaded || isPending || !profile) {
@@ -212,7 +233,7 @@ function Profile() {
                             )}
 
                             {connectionStatus === 'outgoing' && (
-                              <Button variant="outline" className={popIn} onClick={() => handleConnectionAction('cancel')}>
+                              <Button variant="outline" className="animate-pop-in motion-reduce:animate-none" onClick={() => handleConnectionAction('cancel')}>
                                 Requested
                               </Button>
                             )}
@@ -222,7 +243,7 @@ function Profile() {
                                 <Button variant="primary" loading={pending === 'accept'} onClick={() => handleConnectionAction('accept')}>
                                   Accept
                                 </Button>
-                                <Button variant="danger" className={`${popIn}`} loading={pending === 'reject'}
+                                <Button variant="danger" className="animate-pop-in motion-reduce:animate-none" loading={pending === 'reject'}
                                   onClick={() => handleConnectionAction('reject')}>
                                   Reject
                                 </Button>
@@ -233,13 +254,13 @@ function Profile() {
                               <>
                                 <Button
                                   variant={confirmRemove ? 'danger' : 'default'}
-                                  className={confirmRemove ? '' : hoverDanger}
+                                  className={confirmRemove ? '' : 'hover:text-red-500 focus-visible:outline-red-500'}
                                   onClick={() => (confirmRemove ? handleConnectionAction('remove') : setConfirmRemove(true))}
                                   onBlur={() => setConfirmRemove(false)}
                                 >
                                   <SwapLabel idle="Connected" hover="Remove" active="Confirm?" isActive={confirmRemove} />
                                 </Button>
-                                <Button aria-label="Message" className={popIn} onClick={() => navigate(`/chat/${profile?.username}`)}>
+                                <Button aria-label="Message" className="animate-pop-in motion-reduce:animate-none" onClick={() => navigate(`/chat/${profile?.username}`)}>
                                   <SendFill size={20} />
                                 </Button>
                               </>

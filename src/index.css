@@ -7,8 +7,8 @@
   --color-stridex-green-active: color-mix(in oklch, var(--color-stridex-green), black 20%);
 
   --color-stridex-black: #18181b;
-  --color-stridex-black-hover: color-mix(in oklch, var(--color-stridex-black), white 10%);
-  --color-stridex-black-active: color-mix(in oklch, var(--color-stridex-black), white 20%);
+  --color-stridex-black-hover: color-mix(in oklch, var(--color-stridex-black), white 5%);
+  --color-stridex-black-active: color-mix(in oklch, var(--color-stridex-black), white 10%);
   
   --color-stridex-grey: #2d2d2d;
   --color-stridex-grey-hover: color-mix(in oklch, var(--color-stridex-grey), white 10%);
