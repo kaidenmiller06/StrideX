@@ -31,7 +31,7 @@ function Header({ highlightProfile = false}: { highlightProfile?: boolean }) {
             <NavItem to="/" end>Home</NavItem>
             <NavItem to="/events" end>Events</NavItem>
             {session && <NavItem to="/store" end>Store</NavItem>}
-            {session && <NavItem to="/connections" end>Connections</NavItem>}
+            {session && <NavItem to="/connections">Connections</NavItem>}
           </nav>
         </div>
         {/* Auth and Profile (Right) */}

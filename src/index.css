@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-stridex-green: #32cd32;
+  --color-stridex-green: #32ab2d;
   --color-stridex-green-hover: color-mix(in oklch, var(--color-stridex-green), black 10%);
   --color-stridex-green-active: color-mix(in oklch, var(--color-stridex-green), black 20%);
 

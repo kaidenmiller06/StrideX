@@ -1,34 +1,31 @@
 import "dotenv/config";
 import express from "express";
-import cors from "cors";
 import path from "path";
+
+import { createServer } from 'http';
 import { fileURLToPath } from "url";
 import { toNodeHandler } from "better-auth/node";
 
 import { auth } from "./auth.js";
 import { pool } from "./db/pool.js";
+import { initSocket } from "./socket.js";
 
 import user from "./routes/user.js";
 import profile from "./routes/profile.js";
 import connection from "./routes/connection.js";
+import message from "./routes/message.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distPath = path.resolve(__dirname, "../dist");
 
 const app = express();
-
-// If the environment is not production, enable CORS for dev
-if (process.env.NODE_ENV !== "production") {
-  app.use(cors({
-    origin: process.env.CLIENT_URL ?? "http://localhost:5173",
-    credentials: true,
-  }));
-}
-
-// Handle authentication routes using Better Auth
-app.all("/api/auth/*splat", toNodeHandler(auth));
+const httpServer = createServer(app);
+initSocket(httpServer);
 
 app.use(express.json());
+
+// Authentication routes (Better Auth)
+app.all("/api/auth/*splat", toNodeHandler(auth));
 
 // Test route
 app.get("/api/health", async (_req, res) => {
@@ -36,14 +33,11 @@ app.get("/api/health", async (_req, res) => {
   res.json({ ok: true, time: result.rows[0].now });
 });
 
-// Profile routes
+// Database routes (profile, user, connection, message)
 app.use("/api/profile", profile);
-
-// User routes
 app.use("/api/me", user);
-
-// Connection routes
 app.use("/api/connection", connection);
+app.use("/api/message", message);
 
 // Catch-all for unknown API routes
 app.use("/api", (_req, res) => {
@@ -68,4 +62,4 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));

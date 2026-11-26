@@ -6,11 +6,11 @@ import { NavLink } from 'react-router-dom';
  * @param end - Whether the link should be considered active only when the location is exactly matched
  * @param children - The content of the link 
  */
-function NavItem({ to, end, children }: { to: string; end: boolean; children: React.ReactNode }) {
+function NavItem({ to, end, children }: { to: string; end?: boolean; children: React.ReactNode }) {
   return(
     <NavLink
       to={to}
-      end={end}
+      end={end ?? false}
       className={({ isActive }) =>
         `font-orbitron font-bold hover:underline active:text-stridex-green-active ${
           isActive ? 'text-stridex-green' : 'text-white'

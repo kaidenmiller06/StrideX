@@ -233,9 +233,14 @@ function Profile() {
                             )}
 
                             {connectionStatus === 'outgoing' && (
-                              <Button variant="outline" className="animate-pop-in motion-reduce:animate-none" onClick={() => handleConnectionAction('cancel')}>
-                                Requested
-                              </Button>
+                              <>
+                                <Button className="animate-pop-in motion-reduce:animate-none" onClick={() => handleConnectionAction('cancel')}>
+                                  Requested
+                                </Button>
+                                <Button aria-label="Message" className="animate-pop-in motion-reduce:animate-none" onClick={() => navigate(`/connections/${profile?.username}`)}>
+                                  <SendFill size={20} />
+                                </Button>
+                              </>
                             )}
 
                             {connectionStatus === 'incoming' && (
@@ -260,7 +265,7 @@ function Profile() {
                                 >
                                   <SwapLabel idle="Connected" hover="Remove" active="Confirm?" isActive={confirmRemove} />
                                 </Button>
-                                <Button aria-label="Message" className="animate-pop-in motion-reduce:animate-none" onClick={() => navigate(`/chat/${profile?.username}`)}>
+                                <Button aria-label="Message" className="animate-pop-in motion-reduce:animate-none" onClick={() => navigate(`/connections/${profile?.username}`)}>
                                   <SendFill size={20} />
                                 </Button>
                               </>

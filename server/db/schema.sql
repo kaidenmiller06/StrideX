@@ -33,3 +33,4 @@ CREATE TABLE message (
 );
 
 CREATE INDEX message_connection_idx ON message (connection_id, created_at);
+CREATE INDEX message_conversation_idx ON message (connection_id, created_at DESC);

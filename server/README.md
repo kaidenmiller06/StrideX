@@ -41,6 +41,19 @@ accepts it instead of creating a new one.
 ### DELETE /api/connection/cancel/:requesterId, DELETE /api/connection/reject/:requesterId, DELETE /api/connection/remove/:otherId
 204 no body, 404 no matching pending or accepted connection, 401 not logged in.
 
+## Message
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | /api/message/:username | Yes | Retrieve the last 50 messages for a user |
+| POST | /api/message/:username | Yes | Send a message to a user |
+
+### GET /api/message/:username
+200 `{ "messages": [{ "id", "senderId", "text", "createdAt" }] }`, 401 not logged in, 404 not found.
+
+### POST /api/message/:username
+201 `{ "message": { "id", "senderId", "text", "createdAt" } }`, 401 not logged in, 404 not found.
+
 ## Profile
 
 | Method | Path | Auth | Description |

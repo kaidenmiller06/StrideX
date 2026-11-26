@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
+import SocketManager from './components/SocketManager';
+
 import Home from './components/sections/Home';
 import Auth from './components/sections/Auth';
 import Events from './components/sections/Events';
@@ -8,12 +10,12 @@ import Store from './components/sections/Store';
 import Connections from './components/sections/Connections';
 import Profile from './components/sections/Profile';
 
-import ProtectedRoute from './components/guards/ProtectedRoute';
-import ProfileRequired from './components/guards/ProfileRequired';
-
 import ProfileRedirect from './components/sections/ProfileRedirect';
 import ProfileSetup from './components/sections/ProfileSetup';
 import NotFound from './components/sections/NotFound';
+
+import ProtectedRoute from './components/guards/ProtectedRoute';
+import ProfileRequired from './components/guards/ProfileRequired';
 
 function App() {
   return (
@@ -26,10 +28,12 @@ function App() {
             background: '#18181b',
             color: '#fff',
           },
-          success: { iconTheme: { primary: '#32cd32', secondary: '#18181b' } },
+          success: { iconTheme: { primary: '#32ab2d', secondary: '#18181b' } },
           error: { iconTheme: { primary: '#ef4444 ', secondary: '#18181b' } },
         }}
       />
+
+      <SocketManager />
 
       <Routes>
         {/* Public */}
@@ -47,6 +51,7 @@ function App() {
           {/* Profile required */}
           <Route element={<ProfileRequired/>}>
             <Route path="/connections" element={<Connections/>} />
+            <Route path="/connections/:username" element={<Connections/>} />
           </Route>
         </Route>
 

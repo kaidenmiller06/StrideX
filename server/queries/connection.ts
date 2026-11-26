@@ -23,20 +23,30 @@ export async function getConnectionStatus(userId: string, otherId: string): Prom
 
 /**
  * Retrieves all connections for a given user ID,
- * including the connection status and the profile information of the other user in the connection.
+ * including the connection status, profile information, and last message of the other user in the connection.
  * @param userId - The ID of the user whose connections are being retrieved
- * @returns An array of connection objects, with connection and profile information for other users
+ * @returns An array of connection objects, with connection, profile, and last message information for other users
  */
 export async function getConnectionsByUserId(userId: string) {
   const result = await pool.query(
     `SELECT c.id, c.status,
-     c.requester_id AS "requesterId", c.recipient_id AS "recipientId",
-     p.user_id AS "userId", p.username, u.name, u.image
+            c.requester_id AS "requesterId", c.recipient_id AS "recipientId",
+            p.user_id AS "userId", p.username, u.name, u.image,
+            m.text AS "lastMessage", m.created_at AS "lastMessageTime",
+            m.sender_id AS "lastMessageSenderId"
      FROM connection c
      JOIN profile p ON p.user_id = CASE WHEN c.requester_id = $1
                                         THEN c.recipient_id ELSE c.requester_id END
      JOIN "user" u ON u.id = p.user_id
-     WHERE c.requester_id = $1 OR c.recipient_id = $1`,
+     LEFT JOIN LATERAL (
+       SELECT text, created_at, sender_id
+       FROM message
+       WHERE connection_id = c.id
+       ORDER BY created_at DESC
+       LIMIT 1
+     ) m ON true
+     WHERE (c.requester_id = $1 OR c.recipient_id = $1)
+     ORDER BY m.created_at DESC NULLS LAST`,
     [userId]
   );
   return result.rows;

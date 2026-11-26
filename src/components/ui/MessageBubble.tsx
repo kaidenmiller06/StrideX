@@ -33,7 +33,7 @@ function MessageBubble({
       }`;
 
   const colors = isOwn
-    ? 'bg-stridex-green'
+    ? 'bg-stridex-green-hover'
     : 'bg-stridex-grey';
 
   return (
@@ -46,7 +46,7 @@ function MessageBubble({
       )}
 
       {/* Message content and timestamp */}
-      <div className={`flex w-fit max-w-9/10 flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
+      <div className={`flex w-fit max-w-8/10 flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
         <p className={`${corners} ${colors} p-1 px-2 wrap-break-word`}>{message}</p>
         {isLastInGroup && (
           <span className="px-2 text-xs text-stridex-lightgrey">{time}</span>
