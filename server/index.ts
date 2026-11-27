@@ -15,6 +15,9 @@ import profile from "./routes/profile.js";
 import connection from "./routes/connection.js";
 import message from "./routes/message.js";
 
+import storeRouter from "./routes/store.js";
+
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distPath = path.resolve(__dirname, "../dist");
 
@@ -38,6 +41,9 @@ app.use("/api/profile", profile);
 app.use("/api/me", user);
 app.use("/api/connection", connection);
 app.use("/api/message", message);
+
+app.use("/uploads", express.static("uploads"));
+app.use(storeRouter);
 
 // Catch-all for unknown API routes
 app.use("/api", (_req, res) => {

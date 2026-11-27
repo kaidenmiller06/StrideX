@@ -136,6 +136,20 @@ function Store(){
   }
 
 
+
+  // Asks the server to delete one item
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('Delete this image?')) return
+    try {
+      const res = await fetch(`/api/store/${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setItems((prev) => prev.filter((item) => item.id !== id))
+      }
+    } catch {
+      // network error: server leaves the item alone
+    }
+  }
+
   return (
     <div className="flex min-h-dvh flex-col">
       <Header />
@@ -156,6 +170,7 @@ function Store(){
             <ul className="grid grid-cols-2 gap-4 md:grid-cols-4">
               {items.map((item) => (
                 <li key={item.id}>
+                  {/* Clicking the image opens the owner's profile */}
                   <Link to={`/profile/${item.userID}`} className="block">
                     <img
                       src={item.image}
@@ -165,6 +180,17 @@ function Store(){
                     />
                     {item.caption && <p className="mt-1 text-sm">{item.caption}</p>}
                   </Link>
+
+                  {/* Only the user who posted it sees this button.*/}
+                  {session?.user.id === item.userID && (
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      aria-label={`Delete ${item.caption || 'image'}`}
+                      className="mt-1 rounded-full border border-red-400 px-3 py-1 text-sm text-red-400 hover:bg-white/10"
+                    >
+                      Delete
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
